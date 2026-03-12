@@ -153,9 +153,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <h1>ICLR 2026 论文分类浏览器</h1>
         <div class="subtitle">基于 Haiku 模型智能分类 · 41 个研究方向 · 3488 篇论文 · <span id="busuanzi_container_site_pv" style="display:none">总访问 <span id="busuanzi_value_site_pv" style="color:#38bdf8"></span> 次</span> · <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv" style="color:#38bdf8"></span> 人</span></div>
       </div>
-      <div class="view-toggle">
-        <button id="btn-cat-view" class="active" onclick="switchView('category')">分类浏览</button>
-        <button id="btn-all-view" onclick="switchView('all')">全部论文</button>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="view-toggle">
+          <button id="btn-cat-view" class="active" onclick="switchView('category')">分类浏览</button>
+          <button id="btn-all-view" onclick="switchView('all')">全部论文</button>
+        </div>
+        <div id="globe-widget" style="width:120px;height:120px;cursor:pointer" title="访客分布"></div>
       </div>
     </div>
     <div class="stats-bar" id="stats-bar"></div>
@@ -483,5 +486,16 @@ function escHtml(s) {
 init();
 </script>
 <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script>
+// Load ClustrMaps globe into the widget container
+(function(){
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.id = 'clstr_globe';
+  s.src = '//clustrmaps.com/globe.js?d=uBFSb1-1pEGcUCSVSjqmhLLWziAoPxaqyuceGHFBZjc';
+  var target = document.getElementById('globe-widget');
+  if (target) target.appendChild(s);
+})();
+</script>
 </body>
 </html>

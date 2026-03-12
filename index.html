@@ -9,14 +9,14 @@
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
 
 /* Header */
-.header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 1px solid #334155; padding: 10px 32px; position: sticky; top: 0; z-index: 100; }
-.header h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
-.header .subtitle { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-.header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.stats-bar { display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
-.stat-item { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 3px 10px; display: flex; align-items: center; gap: 6px; }
-.stat-item .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-item .value { font-size: 14px; font-weight: 700; color: #38bdf8; }
+.header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 1px solid #334155; padding: 8px 32px; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 18px; font-weight: 700; color: #f8fafc; white-space: nowrap; }
+.header .subtitle { font-size: 11px; color: #64748b; margin-top: 2px; }
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stats-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.stat-item { border-radius: 4px; padding: 2px 8px; display: flex; align-items: center; gap: 4px; }
+.stat-item .label { font-size: 10px; color: #64748b; }
+.stat-item .value { font-size: 13px; font-weight: 700; color: #38bdf8; }
 
 /* Search & Filter */
 .controls { padding: 16px 32px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -149,19 +149,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <div id="app" style="display:none">
   <div class="header">
     <div class="header-row">
-      <div>
-        <h1>ICLR 2026 论文分类浏览器</h1>
-        <div class="subtitle">基于 Haiku 模型智能分类 · 41 个研究方向 · 3488 篇论文 · <span id="busuanzi_container_site_pv" style="display:none">总访问 <span id="busuanzi_value_site_pv" style="color:#38bdf8"></span> 次</span> · <span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv" style="color:#38bdf8"></span> 人</span></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:16px">
+      <h1>ICLR 2026 论文分类浏览器</h1>
+      <div class="stats-bar" id="stats-bar"></div>
+      <div style="display:flex;align-items:center;gap:12px">
         <div class="view-toggle">
           <button id="btn-cat-view" class="active" onclick="switchView('category')">分类浏览</button>
           <button id="btn-all-view" onclick="switchView('all')">全部论文</button>
         </div>
-        <div id="globe-widget" style="width:120px;height:120px;cursor:pointer" title="访客分布"></div>
+        <div id="globe-widget" style="width:80px;height:80px;cursor:pointer" title="访客分布"></div>
       </div>
     </div>
-    <div class="stats-bar" id="stats-bar"></div>
+    <div class="subtitle">基于 Haiku 模型智能分类 · <span id="busuanzi_container_site_pv" style="display:none">总访问 <span id="busuanzi_value_site_pv" style="color:#38bdf8"></span> 次 · </span><span id="busuanzi_container_site_uv" style="display:none">访客 <span id="busuanzi_value_site_uv" style="color:#38bdf8"></span> 人</span></div>
   </div>
 
   <div class="controls">

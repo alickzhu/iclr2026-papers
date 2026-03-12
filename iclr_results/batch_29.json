@@ -1,0 +1,12 @@
+{
+  "classifications": [
+    {"id": 3480, "category": "Reward-Guided Flow Model Adaptation"},
+    {"id": 3481, "category": "LLM Style Control Steering"},
+    {"id": 3482, "category": "Diffusion ODE Sampling Acceleration"},
+    {"id": 3483, "category": "Combinatorial Generalization"},
+    {"id": 3484, "category": "Quantized Image Generation"},
+    {"id": 3485, "category": "Diffusion Model Fine-Tuning"},
+    {"id": 3486, "category": "Speculative LLM Inference"},
+    {"id": 3487, "category": "Physics-Informed Inverse Problems"}
+  ]
+}

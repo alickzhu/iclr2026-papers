@@ -186,7 +186,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <button class="back-top" id="back-top" onclick="document.getElementById('content').scrollTo(0,0)">↑</button>
 
 <script>
-let DATA = [];          // all data (papers include ab/ez inline)
+let DATA = [];
+let detailLoaded = {};  // catIdx -> true
 let favorites = JSON.parse(localStorage.getItem('iclr_fav') || '{}'); // url -> true
 let currentCat = 0;
 let currentSubcat = -1;  // -1 = show all papers in category, >= 0 = show subcat
@@ -198,9 +199,24 @@ let currentPage = 1;
 let currentView = 'category';
 const PAGE_SIZE = 30;
 
+// Load cat detail and merge ab/ez directly into paper objects
+async function loadDetail(catIdx) {
+  if (detailLoaded[catIdx]) return;
+  try {
+    const resp = await fetch(`data/cat_${catIdx}.json`);
+    const details = await resp.json();
+    const papers = DATA[catIdx].papers;
+    for (let i = 0; i < papers.length && i < details.length; i++) {
+      papers[i].ab = details[i].ab || '';
+      papers[i].ez = details[i].ez || '';
+    }
+    detailLoaded[catIdx] = true;
+  } catch (e) {}
+}
+
 async function init() {
   try {
-    const resp = await fetch('data/all.json?v=' + Date.now());
+    const resp = await fetch('data/index.json');
     DATA = await resp.json();
   } catch (e) {
     document.getElementById('loading').innerHTML = '<p style="color:#ef4444">加载数据失败，请确保 data/ 目录存在。<br>如需本地查看，请用 http server 打开 (如 python3 -m http.server)。</p>';
@@ -210,6 +226,7 @@ async function init() {
   document.getElementById('app').style.display = '';
   renderStats();
   renderSidebar();
+  await loadDetail(0);
   renderContent();
 
   document.getElementById('content').addEventListener('scroll', function() {
@@ -398,7 +415,7 @@ function toggleEl(id, btn, label) {
   }
 }
 
-function selectCat(idx) {
+async function selectCat(idx) {
   if (DATA[idx].subcats && DATA[idx].subcats.length > 1) {
     if (expandedCat === idx) {
       expandedCat = -1;
@@ -410,23 +427,28 @@ function selectCat(idx) {
   currentSubcat = -1;
   currentPage = 1;
   renderSidebar();
+  await loadDetail(idx);
   renderContent();
 }
 
-function selectSubcat(catIdx, subcatIdx) {
+async function selectSubcat(catIdx, subcatIdx) {
   currentCat = catIdx;
   currentSubcat = subcatIdx;
   currentPage = 1;
+  await loadDetail(catIdx);
   renderSidebar();
   renderContent();
 }
 
-function switchView(view) {
+async function switchView(view) {
   currentView = view;
   currentPage = 1;
   document.getElementById('btn-cat-view').classList.toggle('active', view === 'category');
   document.getElementById('btn-all-view').classList.toggle('active', view === 'all');
   renderSidebar();
+  if (view === 'all') {
+    await Promise.all(DATA.map((_, i) => loadDetail(i)));
+  }
   renderContent();
 }
 

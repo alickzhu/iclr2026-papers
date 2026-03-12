@@ -186,8 +186,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <button class="back-top" id="back-top" onclick="document.getElementById('content').scrollTo(0,0)">↑</button>
 
 <script>
-let DATA = [];          // index data (lightweight)
-let detailCache = {};   // catIdx -> [{ab, ez}, ...]
+let DATA = [];          // all data (papers include ab/ez inline)
 let favorites = JSON.parse(localStorage.getItem('iclr_fav') || '{}'); // url -> true
 let currentCat = 0;
 let currentSubcat = -1;  // -1 = show all papers in category, >= 0 = show subcat
@@ -201,7 +200,7 @@ const PAGE_SIZE = 30;
 
 async function init() {
   try {
-    const resp = await fetch('data/index.json');
+    const resp = await fetch('data/all.json?v=' + Date.now());
     DATA = await resp.json();
   } catch (e) {
     document.getElementById('loading').innerHTML = '<p style="color:#ef4444">加载数据失败，请确保 data/ 目录存在。<br>如需本地查看，请用 http server 打开 (如 python3 -m http.server)。</p>';
@@ -211,30 +210,12 @@ async function init() {
   document.getElementById('app').style.display = '';
   renderStats();
   renderSidebar();
-
-  // Load first category detail, then render
-  await loadDetail(0);
   renderContent();
 
   document.getElementById('content').addEventListener('scroll', function() {
     document.getElementById('back-top').classList.toggle('show', this.scrollTop > 400);
   });
 }
-
-async function loadDetail(catIdx) {
-  if (detailCache[catIdx]) return detailCache[catIdx];
-  try {
-    const resp = await fetch(`data/cat_${catIdx}.json`);
-    detailCache[catIdx] = await resp.json();
-    return detailCache[catIdx];
-  } catch (e) {
-    return null;
-  }
-}
-
-function getDetail(ci, pi) {
-  const d = detailCache[ci];
-  return d ? d[pi] : null;
 }
 
 function renderStats() {
@@ -361,9 +342,8 @@ function renderContent() {
   const cardsHtml = pagePapers.map((p, idx) => {
     const uid = `${p._ci}_${p._pi}`;
     const isOral = p.v.includes('Oral');
-    const detail = getDetail(p._ci, p._pi);
-    const hasAbs = detail && detail.ab;
-    const hasExpl = detail && detail.ez;
+    const hasAbs = p.ab;
+    const hasExpl = p.ez;
     const isFav = !!favorites[p.u];
     return `<div class="paper-card ${p.rec ? 'recommended' : ''}">
       <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${p.u}',this)" title="收藏">${isFav ? '❤️' : '🤍'}</button>
@@ -375,8 +355,8 @@ function renderContent() {
         <span class="p-badge p-badge-area">${escHtml(p.a)}</span>
         ${p.c ? '<span class="p-badge" style="background:#1e293b;color:#64748b;border:1px solid #334155">置信度 ' + p.c.toFixed(1) + '</span>' : ''}
       </div>
-      ${hasAbs ? '<div class="paper-abstract collapsed" id="abs-' + uid + '">' + escHtml(detail.ab) + '</div><button class="expand-btn" onclick="toggleEl(\'abs-' + uid + '\',this,\'摘要\')">展开摘要 ▼</button>' : ''}
-      ${hasExpl ? '<div class="paper-explain" id="expl-' + uid + '" style="display:none">' + escHtml(detail.ez) + '</div><button class="expand-btn" onclick="toggleEl(\'expl-' + uid + '\',this,\'中文解读\')" style="margin-left:12px">查看中文解读 ▼</button>' : ''}
+      ${hasAbs ? '<div class="paper-abstract collapsed" id="abs-' + uid + '">' + escHtml(p.ab) + '</div><button class="expand-btn" onclick="toggleEl(\'abs-' + uid + '\',this,\'摘要\')">展开摘要 ▼</button>' : ''}
+      ${hasExpl ? '<div class="paper-explain" id="expl-' + uid + '" style="display:none">' + escHtml(p.ez) + '</div><button class="expand-btn" onclick="toggleEl(\'expl-' + uid + '\',this,\'中文解读\')" style="margin-left:12px">查看中文解读 ▼</button>' : ''}
       ${p.k ? '<div class="paper-keywords">关键词: ' + escHtml(p.k) + '</div>' : ''}
     </div>`;
   }).join('');
@@ -418,9 +398,8 @@ function toggleEl(id, btn, label) {
   }
 }
 
-async function selectCat(idx) {
+function selectCat(idx) {
   if (DATA[idx].subcats && DATA[idx].subcats.length > 1) {
-    // Toggle expand
     if (expandedCat === idx) {
       expandedCat = -1;
     } else {
@@ -431,31 +410,23 @@ async function selectCat(idx) {
   currentSubcat = -1;
   currentPage = 1;
   renderSidebar();
-  // Show loading in content area
-  document.getElementById('content').innerHTML = '<div class="empty-state"><div class="spinner" style="width:30px;height:30px;border:3px solid #334155;border-top:3px solid #38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div><p style="margin-top:12px">加载分类数据...</p></div>';
-  await loadDetail(idx);
   renderContent();
 }
 
-async function selectSubcat(catIdx, subcatIdx) {
+function selectSubcat(catIdx, subcatIdx) {
   currentCat = catIdx;
   currentSubcat = subcatIdx;
   currentPage = 1;
-  await loadDetail(catIdx);
   renderSidebar();
   renderContent();
 }
 
-async function switchView(view) {
+function switchView(view) {
   currentView = view;
   currentPage = 1;
   document.getElementById('btn-cat-view').classList.toggle('active', view === 'category');
   document.getElementById('btn-all-view').classList.toggle('active', view === 'all');
   renderSidebar();
-  if (view === 'all') {
-    document.getElementById('content').innerHTML = '<div class="empty-state"><div class="spinner" style="width:30px;height:30px;border:3px solid #334155;border-top:3px solid #38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div><p style="margin-top:12px">加载全部数据...</p></div>';
-    await Promise.all(DATA.map((_, i) => loadDetail(i)));
-  }
   renderContent();
 }
 

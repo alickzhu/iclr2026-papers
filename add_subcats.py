@@ -4,7 +4,7 @@
 import json
 
 # Load index.json
-with open('/home/v-qinglinzhu/code/read_paper/iclr/data/index.json') as f:
+with open('data/index.json') as f:
     DATA = json.load(f)
 
 # Subcategory definitions: (cat_idx, subcat_list)
@@ -103,7 +103,7 @@ for cat_idx, subcats_def in SUBCATS_DEFS.items():
     print(f"\nProcessing Cat {cat_idx}: {cat['name']} ({cat['count']} papers)")
 
     # Load detail data for this category
-    with open(f'/home/v-qinglinzhu/code/read_paper/iclr/data/cat_{cat_idx}.json') as f:
+    with open(f'data/cat_{cat_idx}.json') as f:
         detail_data = json.load(f)
 
     # Initialize subcat paper indices
@@ -141,7 +141,7 @@ for cat_idx, subcats_def in SUBCATS_DEFS.items():
         print(f"  -> No meaningful subcats, skipping")
 
 # Save updated index.json
-with open('/home/v-qinglinzhu/code/read_paper/iclr/data/index.json', 'w', encoding='utf-8') as f:
+with open('data/index.json', 'w', encoding='utf-8') as f:
     json.dump(DATA, f, ensure_ascii=False, separators=(',', ':'))
 
 print("\nDone! index.json updated.")

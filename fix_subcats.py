@@ -4,7 +4,7 @@
 import json
 import os
 
-DATA_DIR = "/home/v-qinglinzhu/code/read_paper/iclr/data"
+DATA_DIR = "data"
 
 # ── New subcat rules for categories that need redoing ──────────────────────
 

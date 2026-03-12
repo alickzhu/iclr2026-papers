@@ -56,6 +56,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .paper-title { font-size: 16px; font-weight: 600; color: #f1f5f9; line-height: 1.4; margin-bottom: 8px; padding-right: 70px; }
 .paper-title a { color: inherit; text-decoration: none; }
 .paper-title a:hover { color: #38bdf8; }
+.paper-problem { font-size: 13px; color: #67e8f9; line-height: 1.5; margin-bottom: 10px; padding-left: 12px; border-left: 2px solid #0e7490; }
 .paper-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
 .p-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
 .p-badge-rating { background: #164e63; color: #22d3ee; }
@@ -290,6 +291,7 @@ function renderContent() {
     const isOral = p.venue.includes('Oral');
     return `<div class="paper-card ${p.recommended ? 'recommended' : ''}" id="paper-${globalIdx}">
       <div class="paper-title"><a href="${p.url}" target="_blank" rel="noopener">${escHtml(p.title)}</a></div>
+      ${p.problem ? '<div class="paper-problem">' + escHtml(p.problem) + '</div>' : ''}
       <div class="paper-badges">
         <span class="p-badge p-badge-rating">★ ${p.rating.toFixed(1)}</span>
         ${isOral ? '<span class="p-badge p-badge-oral">Oral</span>' : '<span class="p-badge p-badge-poster">Poster</span>'}

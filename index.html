@@ -48,11 +48,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Paper list */
 .paper-grid { display: flex; flex-direction: column; gap: 12px; }
-.paper-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; transition: all 0.2s; cursor: pointer; }
+.paper-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; transition: all 0.2s; position: relative; }
 .paper-card:hover { border-color: #475569; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .paper-card.recommended { border-color: #f59e0b; background: linear-gradient(135deg, #1e293b 0%, #1c1917 100%); }
-.paper-card.recommended::before { content: '⭐ 推荐'; position: absolute; top: 12px; right: 12px; background: #f59e0b; color: #0f172a; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-.paper-card { position: relative; }
+.paper-card.recommended::before { content: '⭐ 推荐'; position: absolute; top: 12px; right: 52px; background: #f59e0b; color: #0f172a; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.fav-btn { position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.4; transition: all 0.15s; padding: 2px 6px; }
+.fav-btn:hover { opacity: 0.8; transform: scale(1.2); }
+.fav-btn.active { opacity: 1; }
 .paper-title { font-size: 16px; font-weight: 600; color: #f1f5f9; line-height: 1.4; margin-bottom: 8px; padding-right: 70px; }
 .paper-title a { color: inherit; text-decoration: none; }
 .paper-title a:hover { color: #38bdf8; }
@@ -71,6 +73,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .paper-keywords { font-size: 12px; color: #64748b; margin-top: 8px; }
 .expand-btn { font-size: 12px; color: #38bdf8; cursor: pointer; margin-top: 6px; background: none; border: none; padding: 0; }
 .expand-btn:hover { text-decoration: underline; }
+.detail-loading { color: #64748b; font-size: 12px; padding: 8px 0; }
 
 /* Category header */
 .cat-header { margin-bottom: 24px; }
@@ -81,7 +84,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Empty state */
 .empty-state { text-align: center; padding: 60px 20px; color: #64748b; }
-.empty-state svg { margin-bottom: 16px; }
 .empty-state p { font-size: 16px; }
 
 /* Loading */
@@ -95,6 +97,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .page-btn:hover { background: #334155; }
 .page-btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Subcategory items */
+.subcat-item {
+  padding: 9px 20px 9px 32px;
+  cursor: pointer;
+  border-bottom: 1px solid #1e293b;
+  transition: background 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #161e2e;
+}
+.subcat-item:hover { background: #1e293b; }
+.subcat-item.active { background: #0f172a; border-left: 3px solid #7dd3fc; }
+.subcat-name { font-size: 13px; color: #cbd5e1; }
+.subcat-arrow { font-size: 11px; color: #38bdf8; margin-left: 4px; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
@@ -115,7 +133,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .back-top { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: #38bdf8; color: #0f172a; border: none; cursor: pointer; font-size: 20px; display: none; z-index: 200; box-shadow: 0 4px 12px rgba(56,189,248,0.3); }
 .back-top.show { display: block; }
 
-/* All papers view */
+/* View toggle */
 .view-toggle { display: flex; gap: 2px; background: #0f172a; border-radius: 8px; padding: 2px; border: 1px solid #334155; }
 .view-toggle button { padding: 6px 14px; border: none; background: transparent; color: #94a3b8; font-size: 13px; cursor: pointer; border-radius: 6px; }
 .view-toggle button.active { background: #38bdf8; color: #0f172a; }
@@ -133,7 +151,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="header-row">
       <div>
         <h1>ICLR 2026 论文分类浏览器</h1>
-        <div class="subtitle">基于 Haiku 模型智能分类 · 35 个研究方向 · 3488 篇论文</div>
+        <div class="subtitle">基于 Haiku 模型智能分类 · 41 个研究方向 · 3488 篇论文</div>
       </div>
       <div class="view-toggle">
         <button id="btn-cat-view" class="active" onclick="switchView('category')">分类浏览</button>
@@ -146,12 +164,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div class="controls">
     <div class="search-box">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="search-input" placeholder="搜索论文标题、摘要、关键词..." oninput="onSearch()">
+      <input type="text" id="search-input" placeholder="搜索论文标题、关键词、问题描述..." oninput="onSearch()">
     </div>
     <button class="filter-btn active" onclick="toggleFilter('all')" data-filter="all">全部</button>
     <button class="filter-btn" onclick="toggleFilter('recommended')" data-filter="recommended">⭐ 推荐</button>
     <button class="filter-btn" onclick="toggleFilter('oral')" data-filter="oral">Oral</button>
     <button class="filter-btn" onclick="toggleFilter('high')" data-filter="high">高分 (≥6.5)</button>
+    <button class="filter-btn" onclick="toggleFilter('favorited')" data-filter="favorited">❤ 收藏</button>
     <select class="sort-select" id="sort-select" onchange="onSort()">
       <option value="rating">按评分排序</option>
       <option value="title">按标题排序</option>
@@ -167,8 +186,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <button class="back-top" id="back-top" onclick="document.getElementById('content').scrollTo(0,0)">↑</button>
 
 <script>
-let DATA = [];
+let DATA = [];          // index data (lightweight)
+let detailCache = {};   // catIdx -> [{ab, ez}, ...]
+let favorites = JSON.parse(localStorage.getItem('iclr_fav') || '{}'); // url -> true
 let currentCat = 0;
+let currentSubcat = -1;  // -1 = show all papers in category, >= 0 = show subcat
+let expandedCat = -1;    // which cat is expanded in sidebar (-1 = none)
 let currentFilter = 'all';
 let currentSearch = '';
 let currentSort = 'rating';
@@ -178,16 +201,19 @@ const PAGE_SIZE = 30;
 
 async function init() {
   try {
-    const resp = await fetch('data.json');
+    const resp = await fetch('data/index.json');
     DATA = await resp.json();
   } catch (e) {
-    document.getElementById('loading').innerHTML = '<p style="color:#ef4444">加载数据失败，请确保 data.json 在同一目录下。<br>如需本地查看，请用 http server 打开 (如 python3 -m http.server)。</p>';
+    document.getElementById('loading').innerHTML = '<p style="color:#ef4444">加载数据失败，请确保 data/ 目录存在。<br>如需本地查看，请用 http server 打开 (如 python3 -m http.server)。</p>';
     return;
   }
   document.getElementById('loading').style.display = 'none';
   document.getElementById('app').style.display = '';
   renderStats();
   renderSidebar();
+
+  // Load first category detail, then render
+  await loadDetail(0);
   renderContent();
 
   document.getElementById('content').addEventListener('scroll', function() {
@@ -195,10 +221,26 @@ async function init() {
   });
 }
 
+async function loadDetail(catIdx) {
+  if (detailCache[catIdx]) return detailCache[catIdx];
+  try {
+    const resp = await fetch(`data/cat_${catIdx}.json`);
+    detailCache[catIdx] = await resp.json();
+    return detailCache[catIdx];
+  } catch (e) {
+    return null;
+  }
+}
+
+function getDetail(ci, pi) {
+  const d = detailCache[ci];
+  return d ? d[pi] : null;
+}
+
 function renderStats() {
   const total = DATA.reduce((s, c) => s + c.count, 0);
   const totalOral = DATA.reduce((s, c) => s + c.oral_count, 0);
-  const totalRec = DATA.reduce((s, c) => s + c.papers.filter(p => p.recommended).length, 0);
+  const totalRec = DATA.reduce((s, c) => s + c.papers.filter(p => p.rec).length, 0);
   const avgRating = (DATA.reduce((s, c) => s + c.avg_rating * c.count, 0) / total).toFixed(2);
   document.getElementById('stats-bar').innerHTML = `
     <div class="stat-item"><div class="label">总论文</div><div class="value">${total}</div></div>
@@ -206,6 +248,7 @@ function renderStats() {
     <div class="stat-item"><div class="label">Oral</div><div class="value">${totalOral}</div></div>
     <div class="stat-item"><div class="label">推荐论文</div><div class="value" style="color:#f59e0b">${totalRec}</div></div>
     <div class="stat-item"><div class="label">平均评分</div><div class="value">${avgRating}</div></div>
+    <div class="stat-item"><div class="label">已收藏</div><div class="value" style="color:#f87171">${Object.keys(favorites).length}</div></div>
   `;
 }
 
@@ -213,55 +256,84 @@ function renderSidebar() {
   const sb = document.getElementById('sidebar');
   if (currentView === 'all') { sb.style.display = 'none'; return; }
   sb.style.display = '';
+
   sb.innerHTML = DATA.map((cat, i) => {
+    const hasSubcats = cat.subcats && cat.subcats.length > 1;
+    const isExpanded = expandedCat === i;
+    const isActive = i === currentCat;
     const filteredCount = getFilteredPapers(cat.papers).length;
-    return `<div class="cat-item ${i === currentCat ? 'active' : ''}" onclick="selectCat(${i})">
-      <div>
-        <div class="cat-name">${cat.hot ? '<span class="badge-hot">' + cat.hot + '</span> ' : ''}${cat.name}</div>
+
+    let html = `<div class="cat-item ${isActive && currentSubcat === -1 ? 'active' : ''}" onclick="selectCat(${i})">
+      <div style="flex:1">
+        <div class="cat-name">${cat.hot ? '<span class="badge-hot">'+cat.hot+'</span> ' : ''}${cat.name}${hasSubcats ? ' <span class="subcat-arrow">'+(isExpanded?'▾':'▸')+'</span>' : ''}</div>
         <div class="cat-meta">
           <span class="cat-badge badge-count">${filteredCount}/${cat.count} 篇</span>
           <span class="cat-badge badge-rating">★ ${cat.avg_rating}</span>
-          ${cat.oral_count ? '<span class="cat-badge badge-oral">Oral ' + cat.oral_count + '</span>' : ''}
+          ${cat.oral_count ? '<span class="cat-badge badge-oral">Oral '+cat.oral_count+'</span>' : ''}
         </div>
       </div>
     </div>`;
+
+    // Render subcats if expanded
+    if (hasSubcats && isExpanded) {
+      cat.subcats.forEach((sc, si) => {
+        const scActive = isActive && currentSubcat === si;
+        const scPapers = sc.paper_indices.map(pi => cat.papers[pi]);
+        const scFiltered = getFilteredPapers(scPapers).length;
+        html += `<div class="subcat-item ${scActive ? 'active' : ''}" onclick="selectSubcat(${i}, ${si})">
+          <div class="subcat-name">${sc.name}</div>
+          <div class="cat-meta"><span class="cat-badge badge-count">${scFiltered}/${sc.paper_indices.length}</span></div>
+        </div>`;
+      });
+    }
+
+    return html;
   }).join('');
 }
 
 function getFilteredPapers(papers) {
   let filtered = papers;
-  if (currentFilter === 'recommended') filtered = filtered.filter(p => p.recommended);
-  else if (currentFilter === 'oral') filtered = filtered.filter(p => p.venue.includes('Oral'));
-  else if (currentFilter === 'high') filtered = filtered.filter(p => p.rating >= 6.5);
+  if (currentFilter === 'recommended') filtered = filtered.filter(p => p.rec);
+  else if (currentFilter === 'oral') filtered = filtered.filter(p => p.v.includes('Oral'));
+  else if (currentFilter === 'high') filtered = filtered.filter(p => p.r >= 6.5);
+  else if (currentFilter === 'favorited') filtered = filtered.filter(p => favorites[p.u]);
 
   if (currentSearch) {
     const q = currentSearch.toLowerCase();
     filtered = filtered.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.abstract.toLowerCase().includes(q) ||
-      p.keywords.toLowerCase().includes(q) ||
-      (p.explain_zh && p.explain_zh.toLowerCase().includes(q))
+      p.t.toLowerCase().includes(q) ||
+      p.k.toLowerCase().includes(q) ||
+      (p.p && p.p.toLowerCase().includes(q))
     );
   }
 
-  if (currentSort === 'rating') filtered.sort((a, b) => b.rating - a.rating);
-  else if (currentSort === 'title') filtered.sort((a, b) => a.title.localeCompare(b.title));
+  if (currentSort === 'rating') filtered.sort((a, b) => b.r - a.r);
+  else if (currentSort === 'title') filtered.sort((a, b) => a.t.localeCompare(b.t));
 
   return filtered;
 }
 
 function renderContent() {
   const content = document.getElementById('content');
-  let papers, catName, catInfo;
+  let papers, catName, catInfo, catIdx;
 
   if (currentView === 'all') {
-    papers = DATA.flatMap(c => c.papers);
+    papers = [];
+    DATA.forEach((c, ci) => c.papers.forEach((p, pi) => papers.push({...p, _ci: ci, _pi: pi})));
     catName = '全部论文';
     catInfo = null;
+    catIdx = -1;
   } else {
-    const cat = DATA[currentCat];
-    papers = cat.papers;
-    catName = cat.name;
+    catIdx = currentCat;
+    const cat = DATA[catIdx];
+    if (currentSubcat >= 0 && cat.subcats) {
+      const sc = cat.subcats[currentSubcat];
+      papers = sc.paper_indices.map(pi => ({...cat.papers[pi], _ci: catIdx, _pi: pi}));
+      catName = cat.name + ' › ' + sc.name;
+    } else {
+      papers = cat.papers.map((p, pi) => ({...p, _ci: catIdx, _pi: pi}));
+      catName = cat.name;
+    }
     catInfo = cat;
   }
 
@@ -277,7 +349,7 @@ function renderContent() {
       <span class="cat-header-stat">共 <strong>${filtered.length}</strong> 篇${filtered.length !== papers.length ? ' (已筛选)' : ''}</span>
       ${catInfo ? `<span class="cat-header-stat">平均分 <strong>${catInfo.avg_rating}</strong></span>
       <span class="cat-header-stat">Oral <strong>${catInfo.oral_count}</strong> 篇</span>` : ''}
-      <span class="cat-header-stat">推荐 <strong style="color:#f59e0b">${filtered.filter(p=>p.recommended).length}</strong> 篇</span>
+      <span class="cat-header-stat">推荐 <strong style="color:#f59e0b">${filtered.filter(p=>p.rec).length}</strong> 篇</span>
     </div>
   </div>`;
 
@@ -287,21 +359,25 @@ function renderContent() {
   }
 
   const cardsHtml = pagePapers.map((p, idx) => {
-    const globalIdx = start + idx;
-    const isOral = p.venue.includes('Oral');
-    return `<div class="paper-card ${p.recommended ? 'recommended' : ''}" id="paper-${globalIdx}">
-      <div class="paper-title"><a href="${p.url}" target="_blank" rel="noopener">${escHtml(p.title)}</a></div>
-      ${p.problem ? '<div class="paper-problem">' + escHtml(p.problem) + '</div>' : ''}
+    const uid = `${p._ci}_${p._pi}`;
+    const isOral = p.v.includes('Oral');
+    const detail = getDetail(p._ci, p._pi);
+    const hasAbs = detail && detail.ab;
+    const hasExpl = detail && detail.ez;
+    const isFav = !!favorites[p.u];
+    return `<div class="paper-card ${p.rec ? 'recommended' : ''}">
+      <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${p.u}',this)" title="收藏">${isFav ? '❤️' : '🤍'}</button>
+      <div class="paper-title"><a href="${p.u}" target="_blank" rel="noopener">${escHtml(p.t)}</a></div>
+      ${p.p ? '<div class="paper-problem">' + escHtml(p.p) + '</div>' : ''}
       <div class="paper-badges">
-        <span class="p-badge p-badge-rating">★ ${p.rating.toFixed(1)}</span>
+        <span class="p-badge p-badge-rating">★ ${p.r.toFixed(1)}</span>
         ${isOral ? '<span class="p-badge p-badge-oral">Oral</span>' : '<span class="p-badge p-badge-poster">Poster</span>'}
-        <span class="p-badge p-badge-area">${escHtml(p.primary_area)}</span>
-        ${p.confidence ? '<span class="p-badge" style="background:#1e293b;color:#64748b;border:1px solid #334155">置信度 ' + p.confidence.toFixed(1) + '</span>' : ''}
+        <span class="p-badge p-badge-area">${escHtml(p.a)}</span>
+        ${p.c ? '<span class="p-badge" style="background:#1e293b;color:#64748b;border:1px solid #334155">置信度 ' + p.c.toFixed(1) + '</span>' : ''}
       </div>
-      <div class="paper-abstract collapsed" id="abs-${globalIdx}">${escHtml(p.abstract)}</div>
-      <button class="expand-btn" onclick="toggleAbstract(${globalIdx})">展开摘要 ▼</button>
-      ${p.explain_zh ? '<div class="paper-explain" id="expl-' + globalIdx + '" style="display:none">' + escHtml(p.explain_zh) + '</div><button class="expand-btn" onclick="toggleExplain(' + globalIdx + ')" id="expl-btn-' + globalIdx + '">查看中文解读 ▼</button>' : ''}
-      ${p.keywords ? '<div class="paper-keywords">关键词: ' + escHtml(p.keywords) + '</div>' : ''}
+      ${hasAbs ? '<div class="paper-abstract collapsed" id="abs-' + uid + '">' + escHtml(detail.ab) + '</div><button class="expand-btn" onclick="toggleEl(\'abs-' + uid + '\',this,\'摘要\')">展开摘要 ▼</button>' : ''}
+      ${hasExpl ? '<div class="paper-explain" id="expl-' + uid + '" style="display:none">' + escHtml(detail.ez) + '</div><button class="expand-btn" onclick="toggleEl(\'expl-' + uid + '\',this,\'中文解读\')" style="margin-left:12px">查看中文解读 ▼</button>' : ''}
+      ${p.k ? '<div class="paper-keywords">关键词: ' + escHtml(p.k) + '</div>' : ''}
     </div>`;
   }).join('');
 
@@ -326,19 +402,60 @@ function renderContent() {
   content.scrollTo(0, 0);
 }
 
-function selectCat(idx) {
+function toggleEl(id, btn, label) {
+  const el = document.getElementById(id);
+  if (el.classList.contains('collapsed')) {
+    el.classList.remove('collapsed');
+    el.style.display = '';
+    btn.textContent = '收起' + label + ' ▲';
+  } else if (el.style.display === 'none') {
+    el.style.display = '';
+    btn.textContent = '收起' + label + ' ▲';
+  } else {
+    if (id.startsWith('abs-')) el.classList.add('collapsed');
+    else el.style.display = 'none';
+    btn.textContent = (id.startsWith('abs-') ? '展开' : '查看') + label + ' ▼';
+  }
+}
+
+async function selectCat(idx) {
+  if (DATA[idx].subcats && DATA[idx].subcats.length > 1) {
+    // Toggle expand
+    if (expandedCat === idx) {
+      expandedCat = -1;
+    } else {
+      expandedCat = idx;
+    }
+  }
   currentCat = idx;
+  currentSubcat = -1;
   currentPage = 1;
+  renderSidebar();
+  // Show loading in content area
+  document.getElementById('content').innerHTML = '<div class="empty-state"><div class="spinner" style="width:30px;height:30px;border:3px solid #334155;border-top:3px solid #38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div><p style="margin-top:12px">加载分类数据...</p></div>';
+  await loadDetail(idx);
+  renderContent();
+}
+
+async function selectSubcat(catIdx, subcatIdx) {
+  currentCat = catIdx;
+  currentSubcat = subcatIdx;
+  currentPage = 1;
+  await loadDetail(catIdx);
   renderSidebar();
   renderContent();
 }
 
-function switchView(view) {
+async function switchView(view) {
   currentView = view;
   currentPage = 1;
   document.getElementById('btn-cat-view').classList.toggle('active', view === 'category');
   document.getElementById('btn-all-view').classList.toggle('active', view === 'all');
   renderSidebar();
+  if (view === 'all') {
+    document.getElementById('content').innerHTML = '<div class="empty-state"><div class="spinner" style="width:30px;height:30px;border:3px solid #334155;border-top:3px solid #38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div><p style="margin-top:12px">加载全部数据...</p></div>';
+    await Promise.all(DATA.map((_, i) => loadDetail(i)));
+  }
   renderContent();
 }
 
@@ -350,11 +467,15 @@ function toggleFilter(f) {
   renderContent();
 }
 
+let searchTimer;
 function onSearch() {
-  currentSearch = document.getElementById('search-input').value.trim();
-  currentPage = 1;
-  renderSidebar();
-  renderContent();
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    currentSearch = document.getElementById('search-input').value.trim();
+    currentPage = 1;
+    renderSidebar();
+    renderContent();
+  }, 200);
 }
 
 function onSort() {
@@ -368,28 +489,20 @@ function goPage(p) {
   renderContent();
 }
 
-function toggleAbstract(idx) {
-  const el = document.getElementById('abs-' + idx);
-  const btn = el.nextElementSibling;
-  if (el.classList.contains('collapsed')) {
-    el.classList.remove('collapsed');
-    btn.textContent = '收起摘要 ▲';
+function toggleFav(url, btn) {
+  if (favorites[url]) {
+    delete favorites[url];
+    btn.classList.remove('active');
+    btn.textContent = '🤍';
   } else {
-    el.classList.add('collapsed');
-    btn.textContent = '展开摘要 ▼';
+    favorites[url] = true;
+    btn.classList.add('active');
+    btn.textContent = '❤️';
   }
-}
-
-function toggleExplain(idx) {
-  const el = document.getElementById('expl-' + idx);
-  const btn = document.getElementById('expl-btn-' + idx);
-  if (el.style.display === 'none') {
-    el.style.display = '';
-    btn.textContent = '收起中文解读 ▲';
-  } else {
-    el.style.display = 'none';
-    btn.textContent = '查看中文解读 ▼';
-  }
+  localStorage.setItem('iclr_fav', JSON.stringify(favorites));
+  renderStats();
+  // If currently filtering by favorites, re-render
+  if (currentFilter === 'favorited') { renderSidebar(); renderContent(); }
 }
 
 function escHtml(s) {

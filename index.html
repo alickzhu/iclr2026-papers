@@ -233,7 +233,6 @@ async function init() {
     document.getElementById('back-top').classList.toggle('show', this.scrollTop > 400);
   });
 }
-}
 
 function renderStats() {
   const total = DATA.reduce((s, c) => s + c.count, 0);
